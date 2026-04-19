@@ -23,6 +23,14 @@
   header h1{font-size:2.4em;color:var(--gold-2);letter-spacing:-0.5px;margin-bottom:6px}
   header .sub{color:var(--ink-2);font-style:italic;font-size:1.05em}
   header .count{display:inline-block;margin-top:10px;background:var(--gold);color:white;padding:4px 14px;border-radius:20px;font-size:0.9em;font-weight:bold}
+  .sound-toggle{
+    position:fixed;top:16px;right:16px;z-index:100;
+    background:var(--cream-2);border:none;padding:10px 14px;
+    border-radius:50%;font-size:1.4em;cursor:pointer;
+    box-shadow:var(--shadow);transition:all 0.2s;
+  }
+  .sound-toggle:hover{background:var(--gold);transform:scale(1.05)}
+  .sound-toggle.muted{opacity:0.55}
 
   .tabs{display:flex;gap:10px;margin-bottom:24px;justify-content:center;flex-wrap:wrap}
   .tab{padding:12px 22px;border:none;cursor:pointer;
@@ -307,6 +315,15 @@
 </style>
 </head>
 <body>
+<button class="sound-toggle" id="sound-toggle" title="Ήχος on/off">🔊</button>
+<audio id="a-correct-1" src="audio/correct-1.mp3" preload="auto"></audio>
+<audio id="a-correct-2" src="audio/correct-2.mp3" preload="auto"></audio>
+<audio id="a-wrong-1" src="audio/wrong-1.mp3" preload="auto"></audio>
+<audio id="a-complete" src="audio/complete.mp3" preload="auto"></audio>
+<audio id="a-boss-intro" src="audio/boss-intro.mp3" preload="auto"></audio>
+<audio id="a-boss-hit" src="audio/boss-hit.mp3" preload="auto"></audio>
+<audio id="a-boss-victory" src="audio/boss-victory.mp3" preload="auto"></audio>
+<audio id="a-sfx-correct" src="audio/sfx-correct.mp3" preload="auto"></audio>
 <div class="wrap">
 
 <header>
@@ -595,6 +612,31 @@
 
 <script>
 (function(){
+  var muted=localStorage.getItem('ajax-phys-muted')==='1';
+  var toggle=document.getElementById('sound-toggle');
+  function updateToggle(){
+    toggle.textContent=muted?'🔇':'🔊';
+    toggle.classList.toggle('muted',muted);
+  }
+  updateToggle();
+  toggle.addEventListener('click',function(){
+    muted=!muted;
+    localStorage.setItem('ajax-phys-muted',muted?'1':'0');
+    updateToggle();
+  });
+  function playSound(id){
+    if(muted) return;
+    var a=document.getElementById('a-'+id);
+    if(!a) return;
+    try{ a.currentTime=0; a.play().catch(function(){}); }catch(e){}
+  }
+  function playRandom(ids){ playSound(ids[Math.floor(Math.random()*ids.length)]); }
+  function playCombo(first, second, delay){
+    playSound(first);
+    if(second) setTimeout(function(){playSound(second);}, delay||700);
+  }
+  window.__ajaxAudio={playSound:playSound,playRandom:playRandom,playCombo:playCombo};
+
   document.querySelectorAll('.tab').forEach(function(t){
     t.addEventListener('click',function(){
       document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
@@ -731,6 +773,8 @@
           if(pick===q.a){
             opt.classList.add('correct');
             score++;
+            if(options.boss){ playSound('boss-hit'); }
+            else { playCombo('sfx-correct', Math.random()<0.5?'correct-1':'correct-2', 700); }
             if(hpEl){
               var hp=Math.max(0, maxHp-(score*Math.ceil(maxHp/data.length)));
               hpEl.textContent=hp;
@@ -741,6 +785,7 @@
             fb.appendChild(document.createTextNode(q.why));
           } else {
             opt.classList.add('wrong');
+            if(!options.boss) playSound('wrong-1');
             optsWrap.querySelectorAll('.opt')[q.a].classList.add('correct');
             optsWrap.querySelectorAll('.opt').forEach(function(x,j){
               if(j!==pick && j!==q.a) x.classList.add('dimmed');
@@ -776,6 +821,8 @@
 
     function renderFinal(){
       if(sbar) sbar.style.width='100%';
+      if(options.boss){ if(score===data.length) setTimeout(function(){playSound('boss-victory');},300); }
+      else { setTimeout(function(){playSound('complete');},300); }
       var pct=Math.round(score/data.length*100);
       var medal='🌟', h='', msg='';
       if(options.boss){
@@ -825,7 +872,7 @@
     if(!quizInit){ quizInit=true; renderQuiz(); }
   });
   document.querySelector('[data-tab=boss]').addEventListener('click',function(){
-    if(!bossInit){ bossInit=true; renderBoss(); }
+    if(!bossInit){ bossInit=true; renderBoss(); setTimeout(function(){playSound('boss-intro');},400); }
   });
 })();
 </script>
