@@ -324,6 +324,8 @@
 <audio id="a-boss-hit" src="audio/boss-hit.mp3" preload="auto"></audio>
 <audio id="a-boss-victory" src="audio/boss-victory.mp3" preload="auto"></audio>
 <audio id="a-sfx-correct" src="audio/sfx-correct.mp3" preload="auto"></audio>
+<audio id="a-crowd-cheer" src="audio/crowd-cheer.mp3" preload="auto"></audio>
+<audio id="a-bg-learn" src="audio/bg-learn.mp3" preload="auto" loop></audio>
 <div class="wrap">
 
 <header>
@@ -623,7 +625,20 @@
     muted=!muted;
     localStorage.setItem('ajax-phys-muted',muted?'1':'0');
     updateToggle();
+    var bg=document.getElementById('a-bg-learn');
+    if(muted){ bg.pause(); }
+    else if(document.getElementById('learn').classList.contains('active')){
+      bg.volume=0.18; bg.play().catch(function(){});
+    }
   });
+  var bgEl=document.getElementById('a-bg-learn');
+  bgEl.volume=0.18;
+  function playBg(){
+    if(muted) return;
+    bgEl.volume=0.18;
+    bgEl.play().catch(function(){});
+  }
+  function stopBg(){ bgEl.pause(); }
   function playSound(id){
     if(muted) return;
     var a=document.getElementById('a-'+id);
@@ -643,9 +658,14 @@
       document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
       t.classList.add('active');
       document.getElementById(t.dataset.tab).classList.add('active');
+      if(t.dataset.tab==='learn') playBg(); else stopBg();
       window.scrollTo({top:0,behavior:'smooth'});
     });
   });
+  // First user interaction anywhere unlocks autoplay → kick off bg if on learn
+  document.body.addEventListener('click',function(){
+    if(document.getElementById('learn').classList.contains('active')) playBg();
+  },{once:true});
 
   var cards=document.querySelectorAll('.lcard');
   var dotsEl=document.getElementById('dots');
@@ -821,8 +841,15 @@
 
     function renderFinal(){
       if(sbar) sbar.style.width='100%';
-      if(options.boss){ if(score===data.length) setTimeout(function(){playSound('boss-victory');},300); }
-      else { setTimeout(function(){playSound('complete');},300); }
+      if(options.boss){
+        if(score===data.length){
+          setTimeout(function(){playSound('boss-victory');},300);
+          setTimeout(function(){playSound('crowd-cheer');},3200);
+        }
+      } else {
+        setTimeout(function(){playSound('complete');},300);
+        if(score>=Math.ceil(data.length*0.8)) setTimeout(function(){playSound('crowd-cheer');},2800);
+      }
       var pct=Math.round(score/data.length*100);
       var medal='🌟', h='', msg='';
       if(options.boss){
