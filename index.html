@@ -312,6 +312,20 @@
     .card{padding:20px}
     .tab{padding:10px 16px;font-size:0.95em}
   }
+
+  /* ---------- AJAX VOICE NARRATION ---------- */
+  .narrate{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--cream-2);color:var(--ink);
+    border:1px solid var(--cream-2);
+    padding:9px 16px;border-radius:22px;
+    font-family:inherit;font-size:0.95em;font-weight:bold;
+    cursor:pointer;margin:4px 0 14px;
+    transition:all 0.15s;
+  }
+  .narrate:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
+  .narrate:active{transform:scale(0.97)}
+  .narrate.playing{background:var(--gold);color:#fff;border-color:var(--gold-2);box-shadow:0 0 0 3px rgba(200,155,60,0.2)}
 </style>
 </head>
 <body>
@@ -613,6 +627,11 @@
 </div>
 
 <script>
+window.AJAX_PHYS_CONFIG = {
+  loscEndpoint: 'https://ntemiss-mbp.tailddb317.ts.net/public/ajax-physics/grade'
+};
+</script>
+<script>
 (function(){
   var muted=localStorage.getItem('ajax-phys-muted')==='1';
   var toggle=document.getElementById('sound-toggle');
@@ -670,10 +689,52 @@
   var cards=document.querySelectorAll('.lcard');
   var dotsEl=document.getElementById('dots');
   var cur=0;
-  cards.forEach(function(_,i){
+  var narrationAudios=[];
+  function setNarrateLabel(btn, emoji, text){
+    while(btn.firstChild) btn.removeChild(btn.firstChild);
+    var e=document.createElement('span'); e.textContent=emoji;
+    var t=document.createElement('span'); t.textContent=text;
+    btn.appendChild(e); btn.appendChild(t);
+  }
+  cards.forEach(function(card,i){
     var d=document.createElement('div');
     d.className='dot'+(i===0?' filled':'');
     dotsEl.appendChild(d);
+
+    // Ajax-voice narration button per card
+    var btn=document.createElement('button');
+    btn.className='narrate';
+    btn.type='button';
+    setNarrateLabel(btn, '🎧', 'Άκου τον εαυτό σου');
+    var audio=new Audio('audio/narration/card-'+(i+1)+'.mp3');
+    audio.preload='none';
+    narrationAudios.push(audio);
+    function reset(){ btn.classList.remove('playing'); setNarrateLabel(btn,'🎧','Άκου τον εαυτό σου'); }
+    audio.addEventListener('ended',function(){
+      reset();
+      if(document.getElementById('learn').classList.contains('active')) playBg();
+    });
+    audio.addEventListener('error',function(){ reset(); setNarrateLabel(btn,'🎧','Ήχος μη διαθέσιμος'); });
+    btn.addEventListener('click',function(){
+      // stop any other narration that's playing
+      narrationAudios.forEach(function(a){ if(a!==audio){ try{ a.pause(); a.currentTime=0; }catch(e){} } });
+      document.querySelectorAll('.narrate.playing').forEach(function(b){
+        if(b!==btn){ b.classList.remove('playing'); setNarrateLabel(b,'🎧','Άκου τον εαυτό σου'); }
+      });
+      if(btn.classList.contains('playing')){
+        audio.pause(); audio.currentTime=0; reset();
+        if(document.getElementById('learn').classList.contains('active')) playBg();
+        return;
+      }
+      stopBg();
+      audio.currentTime=0;
+      audio.play().catch(function(){ reset(); });
+      btn.classList.add('playing');
+      setNarrateLabel(btn,'⏸','Σταμάτα');
+    });
+    var h=card.querySelector('h2');
+    if(h && h.nextSibling){ card.insertBefore(btn, h.nextSibling); }
+    else { card.insertBefore(btn, card.firstChild); }
   });
   function showCard(i){
     cards.forEach(function(c,j){c.style.display=j===i?'block':'none';});
@@ -762,8 +823,68 @@
     return e;
   }
 
+  // ---------- persistence + LOSC grade submission ----------
+  // Set window.AJAX_PHYS_CONFIG={loscEndpoint:'https://.../grades'} before page load to enable auto-sync.
+  // Without it, grades queue in localStorage 'ajax-phys-grades-pending' for later manual sync.
+  var CONFIG = window.AJAX_PHYS_CONFIG || { loscEndpoint:'' };
+  function storeGet(k, fb){
+    try{ var v=localStorage.getItem(k); return v?JSON.parse(v):fb; }catch(e){ return fb; }
+  }
+  function storeSet(k, v){
+    try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){}
+  }
+  function queuePending(p){
+    var pending = storeGet('ajax-phys-grades-pending', []);
+    pending.push(p);
+    storeSet('ajax-phys-grades-pending', pending);
+  }
+  function submitGrade(payload){
+    return new Promise(function(resolve){
+      if(!CONFIG.loscEndpoint){ queuePending(payload); return resolve(false); }
+      fetch(CONFIG.loscEndpoint, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload),
+        mode:'cors'
+      }).then(function(r){ resolve(!!(r && r.ok)); })
+        .catch(function(){ queuePending(payload); resolve(false); });
+    });
+  }
+  function shuffleInts(n){
+    var a=[]; for(var i=0;i<n;i++) a.push(i);
+    for(var j=a.length-1;j>0;j--){
+      var r=Math.floor(Math.random()*(j+1));
+      var t=a[j]; a[j]=a[r]; a[r]=t;
+    }
+    return a;
+  }
+
   function buildQuiz(data, boxId, options){
-    var qi=0, score=0;
+    var storageKey = options.storageKey || null;
+    var spaced = !!options.spaced;
+
+    var qi = 0, score = 0;
+    var queue = null, mastered = null, attempts = 0;
+    var saved = storageKey ? storeGet(storageKey, null) : null;
+
+    if(spaced){
+      if(saved && saved.queue && saved.queue.length){
+        queue = saved.queue.slice();
+        mastered = {};
+        (saved.mastered || []).forEach(function(i){ mastered[i] = true; });
+        attempts = saved.attempts || 0;
+      } else {
+        queue = shuffleInts(data.length);
+        mastered = {};
+        attempts = 0;
+      }
+    } else {
+      if(saved && typeof saved.qi === 'number' && saved.qi < data.length){
+        qi = saved.qi;
+        score = saved.score || 0;
+      }
+    }
+
     var qbox=document.getElementById(boxId);
     var sbar=options.sbar ? document.getElementById(options.sbar) : null;
     var stext=options.stext ? document.getElementById(options.stext) : null;
@@ -771,15 +892,45 @@
     var hitsEl=options.hitsEl ? document.getElementById(options.hitsEl) : null;
     var maxHp=options.maxHp||100;
 
+    function masteredCount(){
+      var c=0; for(var k in mastered){ if(mastered[k]) c++; } return c;
+    }
+    function saveState(){
+      if(!storageKey) return;
+      if(spaced){
+        var arr=[]; for(var k in mastered){ if(mastered[k]) arr.push(+k); }
+        storeSet(storageKey, {queue:queue, mastered:arr, attempts:attempts, ts:Date.now()});
+      } else {
+        storeSet(storageKey, {qi:qi, score:score, ts:Date.now()});
+      }
+    }
+    function clearState(){
+      if(storageKey){ try{ localStorage.removeItem(storageKey); }catch(e){} }
+    }
+
     function renderOne(){
       clear(qbox);
-      if(qi>=data.length) return renderFinal();
-      var q=data[qi];
-      if(sbar) sbar.style.width=(qi/data.length*100)+'%';
-      if(stext) stext.textContent='Ερώτηση '+(qi+1)+' από '+data.length+'  ·  Σκορ: '+score+'/'+qi;
-      if(hitsEl) hitsEl.textContent=qi;
 
-      qbox.appendChild(el('div','qnum',options.label+' '+(qi+1)));
+      if(spaced){
+        if(!queue.length || masteredCount() >= data.length) return renderFinal();
+      } else {
+        if(qi >= data.length) return renderFinal();
+      }
+
+      var currentIdx = spaced ? queue[0] : qi;
+      var q = data[currentIdx];
+
+      if(spaced){
+        var mc = masteredCount();
+        if(sbar) sbar.style.width = (mc/data.length*100) + '%';
+        if(stext) stext.textContent = 'Κατακτημένες: '+mc+'/'+data.length+'  ·  Προσπάθειες: '+attempts+'  ·  Σειρά: '+queue.length;
+      } else {
+        if(sbar) sbar.style.width=(qi/data.length*100)+'%';
+        if(stext) stext.textContent='Ερώτηση '+(qi+1)+' από '+data.length+'  ·  Σκορ: '+score+'/'+qi;
+        if(hitsEl) hitsEl.textContent=qi;
+      }
+
+      qbox.appendChild(el('div','qnum', options.label+' '+(spaced ? (masteredCount()+1) : (qi+1))));
       qbox.appendChild(el('div','qtext',q.q));
 
       var optsWrap=el('div','opts');
@@ -792,7 +943,14 @@
           var fb=document.getElementById(boxId+'-fb');
           if(pick===q.a){
             opt.classList.add('correct');
-            score++;
+            if(spaced){
+              attempts++;
+              mastered[currentIdx] = true;
+              // remove ALL occurrences of this idx from queue (in case it was re-queued earlier)
+              queue = queue.filter(function(x){ return x !== currentIdx; });
+            } else {
+              score++;
+            }
             if(options.boss){ playSound('boss-hit'); }
             else { playCombo('sfx-correct', Math.random()<0.5?'correct-1':'correct-2', 700); }
             if(hpEl){
@@ -810,6 +968,12 @@
             optsWrap.querySelectorAll('.opt').forEach(function(x,j){
               if(j!==pick && j!==q.a) x.classList.add('dimmed');
             });
+            if(spaced){
+              attempts++;
+              queue.shift();
+              // re-insert 2 positions later (or at end if queue shorter) — gives a buffer before retry
+              queue.splice(Math.min(2, queue.length), 0, currentIdx);
+            }
             fb.className='feedback bad show';
             clear(fb);
             fb.appendChild(el('strong',null,options.badPrefix+' '));
@@ -818,8 +982,11 @@
             fb.appendChild(el('br'));
             fb.appendChild(document.createTextNode(q.why));
           }
-          document.getElementById(boxId+'-next').style.display='inline-block';
-          document.getElementById(boxId+'-next').textContent=(qi===data.length-1)?options.finalLabel:'Επόμενη ➡';
+          saveState();
+          var nbtn=document.getElementById(boxId+'-next');
+          nbtn.style.display='inline-block';
+          var last = spaced ? (masteredCount()===data.length) : (qi===data.length-1);
+          nbtn.textContent = last ? options.finalLabel : 'Επόμενη ➡';
         });
         optsWrap.appendChild(opt);
       });
@@ -834,49 +1001,111 @@
       var nextBtn=el('button','btn','Επόμενη ➡');
       nextBtn.id=boxId+'-next';
       nextBtn.style.display='none';
-      nextBtn.addEventListener('click',function(){qi++;renderOne();});
+      nextBtn.addEventListener('click',function(){
+        if(!spaced) qi++;
+        renderOne();
+      });
       nav.appendChild(nextBtn);
       qbox.appendChild(nav);
     }
 
     function renderFinal(){
       if(sbar) sbar.style.width='100%';
+      var total = data.length;
+      var displayScore = spaced ? masteredCount() : score;
+      var pct = Math.round(displayScore/total*100);
+
       if(options.boss){
-        if(score===data.length){
+        if(score===total){
           setTimeout(function(){playSound('boss-victory');},300);
           setTimeout(function(){playSound('crowd-cheer');},3200);
         }
       } else {
         setTimeout(function(){playSound('complete');},300);
-        if(score>=Math.ceil(data.length*0.8)) setTimeout(function(){playSound('crowd-cheer');},2800);
+        if(displayScore>=Math.ceil(total*0.8)) setTimeout(function(){playSound('crowd-cheer');},2800);
       }
-      var pct=Math.round(score/data.length*100);
+
       var medal='🌟', h='', msg='';
       if(options.boss){
-        if(score===data.length){medal='👑';h='ΝΙΚΗΤΗΣ!';msg='Σκότωσες τον Δράκο. Είσαι ο Μαχητής της Φυσικής. Διαγώνισμα, έρχομαι!';}
+        if(score===total){medal='👑';h='ΝΙΚΗΤΗΣ!';msg='Σκότωσες τον Δράκο. Είσαι ο Μαχητής της Φυσικής. Διαγώνισμα, έρχομαι!';}
         else if(score>=3){medal='⚔️';h='Γενναίος Ήρωας';msg='Τραυμάτισες βαριά τον δράκο. Μια ακόμη μάχη και θα νικήσεις.';}
         else {medal='🛡️';h='Ξαναπάλεψε';msg='Ο δράκος είναι δυνατός. Ετοιμάσου ξανά και επίστρεψε.';}
+      } else if(spaced){
+        var ratio = attempts/total;
+        if(ratio<=1.0){medal='🏆';h='Τέλειο! Καμία προσπάθεια χαμένη.';msg='Είσαι θρύλος, Αία. Διαγώνισμα, φοβήσου.';}
+        else if(ratio<=1.3){medal='🥇';h='Εξαιρετικά!';msg='Λίγα λάθη, πολλή μαεστρία. Έτοιμος.';}
+        else if(ratio<=1.6){medal='🥈';h='Πολύ καλά!';msg='Μια επανάληψη και αστράφτεις.';}
+        else {medal='💪';h='Τα κατάφερες όλα!';msg='Το σημαντικό: κάθε ερώτηση έγινε δική σου.';}
       } else {
         if(pct>=90){medal='🏆';h='Ο Μαχητής της Φυσικής!';msg='Εξαιρετική δουλειά. Είσαι έτοιμος.';}
         else if(pct>=75){medal='🥇';h='Σε πολύ καλό δρόμο!';msg='Λίγη επανάληψη και είσαι θρύλος.';}
         else if(pct>=50){medal='🥈';h='Καλή προσπάθεια!';msg='Ξανακοίτα τα κεφάλαια και δοκίμασε ξανά.';}
         else {medal='💪';h='Να ξαναδώσεις!';msg='Πήγαινε στο «Μαθαίνω», διάβασε ξανά και έλα πάλι.';}
       }
-      if(stext) stext.textContent='Ολοκληρώθηκε · Σκορ: '+score+'/'+data.length;
+      if(stext){
+        stext.textContent = spaced
+          ? ('Ολοκληρώθηκε · '+total+'/'+total+' σε '+attempts+' προσπάθειες')
+          : ('Ολοκληρώθηκε · Σκορ: '+displayScore+'/'+total);
+      }
+
       clear(qbox);
       var f=el('div','final');
       f.appendChild(el('div','medal',medal));
       f.appendChild(el('h2',null,h));
-      f.appendChild(el('div','big',score+'/'+data.length));
-      f.appendChild(el('div','msg',msg+' ('+pct+'%)'));
+      f.appendChild(el('div','big', spaced ? (total+'/'+total+' κατακτημένες') : (displayScore+'/'+total)));
+      f.appendChild(el('div','msg', spaced ? (msg+' ('+attempts+' προσπάθειες)') : (msg+' ('+pct+'%)')));
+
+      // LOSC grade submission — boss completions only
+      if(options.boss && options.loscTopic){
+        var payload = {
+          subject: 'Φυσική Α Γυμνασίου',
+          topic: options.loscTopic,
+          score: score,
+          total: total,
+          percent: pct,
+          date: new Date().toISOString(),
+          mode: 'boss'
+        };
+        var hist = storeGet('ajax-phys-grades-history', []);
+        hist.push(payload);
+        storeSet('ajax-phys-grades-history', hist);
+        var status = el('div','msg');
+        status.style.fontSize='0.88em';
+        status.style.opacity='0.75';
+        status.style.marginTop='6px';
+        status.textContent='📤 Καταχώρηση στο LOSC…';
+        f.appendChild(status);
+        submitGrade(payload).then(function(ok){
+          status.textContent = ok
+            ? '✓ Καταχωρήθηκε στο LOSC'
+            : '↺ Αποθηκεύτηκε τοπικά — θα συγχρονιστεί όταν συνδεθεί το LOSC';
+        });
+      }
+
       var again=el('button','btn','🔄 Ξανά');
-      again.addEventListener('click',function(){qi=0;score=0;if(hpEl)hpEl.textContent=maxHp;if(hitsEl)hitsEl.textContent=0;renderOne();});
+      again.addEventListener('click',function(){
+        if(spaced){
+          queue = shuffleInts(data.length);
+          mastered = {};
+          attempts = 0;
+        } else {
+          qi=0; score=0;
+        }
+        clearState();
+        if(hpEl) hpEl.textContent=maxHp;
+        if(hitsEl) hitsEl.textContent=0;
+        renderOne();
+      });
       f.appendChild(again);
       var back=el('button','btn blue','📖 Επανάληψη');
       back.style.marginLeft='10px';
       back.addEventListener('click',function(){document.querySelector('[data-tab=learn]').click();});
       f.appendChild(back);
       qbox.appendChild(f);
+
+      // Linear mode reaches an "end"; clear saved progress so next visit starts fresh.
+      // Spaced mode keeps the mastered set — next visit shows the final screen until Ξανά is clicked.
+      if(!spaced) clearState();
     }
 
     return renderOne;
@@ -885,13 +1114,17 @@
   var renderQuiz=buildQuiz(Q,'qbox',{
     sbar:'sbar', stext:'stext', label:'ΕΡΩΤΗΣΗ',
     okPrefix:'✅ Μπράβο Αία!', badPrefix:'❌ Δεν πειράζει — έτσι μαθαίνουμε!',
-    finalLabel:'🏁 Τελικό σκορ'
+    finalLabel:'🏁 Τελικό σκορ',
+    spaced: true,
+    storageKey: 'ajax-phys-quiz-v1'
   });
   var renderBoss=buildQuiz(BOSS,'bbox',{
     hpEl:'dragon-hp', hitsEl:'dragon-hits', maxHp:100,
     label:'ΜΑΧΗ', boss:true,
     okPrefix:'⚔️ ΚΤΥΠΗΜΑ!', badPrefix:'🛡️ Ο δράκος αντέκρουσε!',
-    finalLabel:'👑 Τέλος μάχης'
+    finalLabel:'👑 Τέλος μάχης',
+    storageKey: 'ajax-phys-boss-v1',
+    loscTopic: 'Μάζα · Βάρος · Θερμοκρασία · Θερμότητα — Boss Fight'
   });
 
   var quizInit=false, bossInit=false;
