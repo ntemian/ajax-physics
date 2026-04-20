@@ -326,6 +326,52 @@
   .narrate:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
   .narrate:active{transform:scale(0.97)}
   .narrate.playing{background:var(--gold);color:#fff;border-color:var(--gold-2);box-shadow:0 0 0 3px rgba(200,155,60,0.2)}
+
+  /* ---------- WHY / CURRICULUM MAP ---------- */
+  .why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:18px 0}
+  .why-card{background:var(--cream);border-radius:12px;padding:16px;border-top:4px solid var(--gold);box-shadow:var(--shadow)}
+  .why-card h4{color:var(--gold-2);margin-bottom:8px;font-size:1.05em;display:flex;align-items:center;gap:6px}
+  .why-card ul{margin-left:18px;font-size:0.93em}
+  .why-card li{margin-bottom:5px}
+  .why-card.heat{border-top-color:var(--red)}
+  .why-card.heat h4{color:var(--red)}
+  .why-card.mass{border-top-color:var(--blue)}
+  .why-card.mass h4{color:var(--blue)}
+
+  .roadmap{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+  .year{background:var(--cream);border-radius:12px;padding:14px 16px;border-left:5px solid var(--cream-2)}
+  .year.now{border-left-color:var(--gold);background:#fff7e0}
+  .year h4{color:var(--ink);margin-bottom:8px;font-size:1.05em}
+  .year.now h4{color:var(--gold-2)}
+  .unit-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .unit{background:white;padding:6px 12px;border-radius:16px;font-size:0.88em;border:1px solid var(--cream-2);color:var(--ink-2)}
+  .unit.done{background:#e6f2ea;border-color:var(--green);color:#1f5f3a}
+  .unit.done::before{content:"✓ ";color:var(--green);font-weight:bold}
+  .unit.current{background:var(--gold);border-color:var(--gold-2);color:white;font-weight:bold;box-shadow:0 2px 8px rgba(200,155,60,0.35)}
+  .unit.current::before{content:"▶ "}
+  .unit.future{opacity:0.72}
+
+  /* ---------- BADGES / REWARDS ---------- */
+  .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin:18px 0}
+  .badge{background:var(--cream);border-radius:14px;padding:14px 10px;text-align:center;position:relative;transition:transform 0.2s;border:2px solid var(--cream-2)}
+  .badge.locked{opacity:0.42;filter:grayscale(0.8)}
+  .badge.earned{border-color:var(--gold);background:linear-gradient(145deg,#fff7e0,#fdf9f0);box-shadow:0 4px 12px rgba(200,155,60,0.2)}
+  .badge.earned:hover{transform:translateY(-3px)}
+  .badge .ico{font-size:2.4em;display:block;margin-bottom:6px;line-height:1}
+  .badge .name{font-size:0.88em;font-weight:bold;color:var(--ink);margin-bottom:4px}
+  .badge .desc{font-size:0.76em;color:var(--ink-2);line-height:1.3}
+  .badge.earned .ico{animation:pop 0.5s ease-out}
+  @keyframes pop{0%{transform:scale(0.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+  .badge-summary{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:white;padding:16px 20px;border-radius:14px;text-align:center;margin:18px 0;box-shadow:var(--shadow)}
+  .badge-summary .big{font-size:2.6em;font-weight:bold;line-height:1;margin:4px 0}
+  .reward-tier{background:var(--cream);border-radius:12px;padding:14px 16px;margin:10px 0;border-left:5px solid var(--gold);display:flex;gap:14px;align-items:center}
+  .reward-tier .tier-ico{font-size:2em;flex-shrink:0}
+  .reward-tier .tier-body h4{color:var(--gold-2);font-size:1.02em;margin-bottom:4px}
+  .reward-tier .tier-body p{font-size:0.92em;margin:0}
+  .reward-tier.unlocked{background:#e6f2ea;border-left-color:var(--green)}
+  .reward-tier.unlocked h4{color:#1f5f3a}
+  .reward-tier.unlocked::after{content:"🔓 Ξεκλειδώθηκε";font-size:0.78em;color:#1f5f3a;font-weight:bold;margin-left:auto;flex-shrink:0}
+  .reward-tier.locked::after{content:"🔒";font-size:1.3em;margin-left:auto;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -350,8 +396,10 @@
 
 <div class="tabs">
   <button class="tab active" data-tab="learn">📖 Μαθαίνω</button>
+  <button class="tab" data-tab="map">🗺️ Γιατί/Χάρτης</button>
   <button class="tab" data-tab="quiz">🎯 Κουίζ</button>
   <button class="tab" data-tab="boss">👑 Boss Fight</button>
+  <button class="tab" data-tab="badges">🏆 Τρόπαια</button>
 </div>
 
 <!-- ============ LEARN ============ -->
@@ -374,6 +422,9 @@
       <span class="chip b">Μπάσκετ</span>
       🏀 Η μπάλα μπάσκετ του Ajax South ζυγίζει περίπου <strong>600 g</strong> (0,6 kg). Αυτή είναι η μάζα της. Θα είναι ίδια και στη Σελήνη — το βάρος, όμως, όχι!
     </div>
+
+    <img class="hero-img" src="img-what-is-mass.png" alt="Infographic: καθημερινά αντικείμενα με τη μάζα τους">
+    <div class="hero-cap">🎨 Infographic (Nano Banana 2) — πόση μάζα έχει το κάθε πράγμα</div>
   </div>
 
   <div class="card lcard" style="display:none">
@@ -520,6 +571,9 @@
       ☕ Ο ελληνικός καφές στο καφενείο της παραλίας έχει <strong>θερμική ενέργεια</strong> μέσα του (τα μόρια του νερού κινούνται έντονα). Καθώς τον αφήνεις, <strong>θερμότητα</strong> φεύγει από τον καφέ προς τον αέρα. Η θερμική ενέργεια είναι <em>μέσα</em>. Η θερμότητα είναι η <em>ροή</em>.
     </div>
     <div class="tip">💡 <strong>Διαφορά-κλειδί:</strong> Η θερμική ενέργεια <em>είναι μέσα</em> στο σώμα. Η θερμότητα <em>μεταφέρεται</em> από σώμα σε σώμα.</div>
+
+    <img class="hero-img" src="img-heat-vs-thermal.png" alt="Infographic: Θερμότητα (ροή) vs Θερμική Ενέργεια (άθροισμα μορίων)">
+    <div class="hero-cap">🎨 Infographic (Nano Banana 2) — η θερμότητα είναι ΡΟΗ, η θερμική ενέργεια είναι ΑΘΡΟΙΣΜΑ μέσα</div>
   </div>
 
   <div class="card lcard" style="display:none">
@@ -558,6 +612,10 @@
   <div class="card lcard" style="display:none">
     <h2>7. Τα Μόρια — Θερμό vs Ψυχρό</h2>
     <p>Η θερμοκρασία είναι, στην πραγματικότητα, <strong>πόσο γρήγορα κινούνται τα μόρια</strong>.</p>
+
+    <img class="hero-img" src="img-molecules-hot-cold.png" alt="Infographic: μόρια σε ψυχρό (αργά) vs θερμό (γρήγορα) σώμα">
+    <div class="hero-cap">🎨 Infographic (Nano Banana 2) — ίδιος αριθμός μορίων, διαφορετική ταχύτητα</div>
+
     <div class="molecules">
       <div class="box hot">
         <div class="label">🔥 Θερμό Σώμα (σαν το Γαλαξίδι τον Ιούλιο)</div>
@@ -581,6 +639,10 @@
 
   <div class="card lcard" style="display:none">
     <h2>8. Τα 5 που πρέπει να θυμάσαι</h2>
+
+    <img class="hero-img" src="img-5-key-facts.png" alt="Infographic: τα 5 key facts του διαγωνίσματος">
+    <div class="hero-cap">🎨 Infographic (Nano Banana 2) — η αφίσα-περίληψη για το διαγώνισμα</div>
+
     <table class="facts">
       <tr><th>#</th><th>Κανόνας</th></tr>
       <tr><td>1</td><td>Μάζα = ύλη (kg). Βάρος = δύναμη (N). <strong>Δεν είναι το ίδιο.</strong></td></tr>
@@ -622,6 +684,217 @@
     </div>
   </div>
   <div class="quiz-box" id="bbox"></div>
+</div>
+
+<!-- ============ WHY / CURRICULUM MAP ============ -->
+<div class="panel" id="map">
+
+  <div class="card">
+    <h2>🌍 Γιατί μαθαίνεις Φυσική;</h2>
+
+    <img class="hero-img" src="img-physics-everywhere.png" alt="Infographic: Ajax στο κέντρο, τριγύρω εικονίδια από τη ζωή όπου η Φυσική φαίνεται">
+    <div class="hero-cap">🎨 Infographic (Nano Banana 2) — η Φυσική είναι παντού γύρω σου</div>
+
+    <p>Η Φυσική δεν είναι απλά «κάτι για το διαγώνισμα». Είναι ο <strong>οδηγός χρήσης του κόσμου</strong>. Όταν καταλαβαίνεις πώς δουλεύει η ύλη, η θερμοκρασία και η ενέργεια — αρχίζεις να βλέπεις τον κόσμο σαν μηχανικός, σαν ντετέκτιβ, σαν ήρωας που ξέρει τους κανόνες του παιχνιδιού.</p>
+    <div class="tip blue">
+      <strong>💡 Η κρυφή δύναμη:</strong> Κάθε φορά που μαγειρεύεις, παίζεις μπάσκετ, ταξιδεύεις, ή σχεδιάζεις D&D χαρακτήρα — χρησιμοποιείς Φυσική χωρίς να το ξέρεις. Αφού τη μάθεις, θα το ξέρεις. Κι αυτό αλλάζει τα πάντα.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚖️ Πού θα σου χρησιμεύσει η Μάζα & το Βάρος;</h2>
+    <div class="why-grid">
+      <div class="why-card mass">
+        <h4>🍽️ Κουζίνα</h4>
+        <ul>
+          <li>Συνταγές της γιαγιάς: 500g αλεύρι, 200g ζάχαρη — λάθος μάζα = χαλασμένο γλυκό</li>
+          <li>Μερίδα σουβλάκι 200g ≠ 200 N</li>
+          <li>Ψωμί ταβέρνας: 500g φρέσκο</li>
+        </ul>
+      </div>
+      <div class="why-card mass">
+        <h4>🏀 Μπάσκετ</h4>
+        <ul>
+          <li>Μπάλα Ajax South: 0,6 kg — επηρεάζει πώς σουτάρεις</li>
+          <li>Το βάρος σου επηρεάζει το άλμα</li>
+          <li>Προπόνηση βαρών: kg = μάζα, όχι «βάρος»</li>
+        </ul>
+      </div>
+      <div class="why-card mass">
+        <h4>🐉 D&D</h4>
+        <ul>
+          <li>STR του χαρακτήρα = πόση μάζα σηκώνει</li>
+          <li>Πανοπλία: βάρος επηρεάζει κίνηση</li>
+          <li>Ο Μάνος ρωτάει: «πόσο ζυγίζει το σπαθί;» — εσύ ξέρεις!</li>
+        </ul>
+      </div>
+      <div class="why-card mass">
+        <h4>🚀 Διάστημα</h4>
+        <ul>
+          <li>Αστροναύτες στη Σελήνη: ίδια μάζα, 1/6 του βάρους</li>
+          <li>Γι' αυτό αναπηδούν</li>
+          <li>Μάζα Διεθνούς Στ. Σταθμού: 420.000 kg</li>
+        </ul>
+      </div>
+      <div class="why-card mass">
+        <h4>🎣 Γαλαξίδι — Λιμάνι</h4>
+        <ul>
+          <li>Ψαράδες πιάνουν 3 τόνους = 3.000 kg</li>
+          <li>Ζυγιστική βάρκας = μέγιστο βάρος για να μη βυθιστεί</li>
+          <li>Φορτίο καϊκιού: μάζα × g = δύναμη στο σκάφος</li>
+        </ul>
+      </div>
+      <div class="why-card mass">
+        <h4>🔧 Μηχανική &amp; Κτίρια</h4>
+        <ul>
+          <li>Γέφυρες σχεδιάζονται για συγκεκριμένη μάζα αυτοκινήτων</li>
+          <li>Ασανσέρ: «μέγιστο φορτίο 8 άτομα / 630 kg»</li>
+          <li>Αεροπλάνο: υπέρβαρο φορτίο = δεν απογειώνεται</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🌡️ Πού θα σου χρησιμεύσει η Θερμότητα;</h2>
+    <div class="why-grid">
+      <div class="why-card heat">
+        <h4>🍳 Μαγείρεμα</h4>
+        <ul>
+          <li>Γιατί βράζει το νερό στους 100°C; Εκεί βαθμονομείται!</li>
+          <li>Ζυμαρικά: μεταφορά θερμότητας από νερό στη ζύμη</li>
+          <li>Αυγό: θερμότητα αλλάζει τα μόρια — γίνεται στερεό</li>
+        </ul>
+      </div>
+      <div class="why-card heat">
+        <h4>🤒 Πυρετός</h4>
+        <ul>
+          <li>Γιατί περιμένουμε 1 λεπτό το θερμόμετρο; Θερμική ισορροπία</li>
+          <li>38°C = άρρωστος. Εσύ ξέρεις γιατί</li>
+          <li>Χέρι στο μέτωπο: αναξιόπιστο — εξαρτάται από το δικό σου χέρι</li>
+        </ul>
+      </div>
+      <div class="why-card heat">
+        <h4>🏖️ Θάλασσα Αλίμου</h4>
+        <ul>
+          <li>Γιατί το νερό μένει ζεστό μετά το ηλιοβασίλεμα; Αποθηκεύει θερμότητα</li>
+          <li>Μάρτιος: 15°C. Ιούλιος: 26°C. Θερμική ενέργεια χτίζεται όλο το καλοκαίρι</li>
+          <li>Γιατί κρυώνεις όταν βγαίνεις βρεγμένος: εξάτμιση = απώλεια θερμότητας</li>
+        </ul>
+      </div>
+      <div class="why-card heat">
+        <h4>❄️ A/C & Σπίτι</h4>
+        <ul>
+          <li>Κλιματιστικό: αντλεί θερμότητα από μέσα → έξω</li>
+          <li>Γιατί το ψυγείο ζεσταίνει από πίσω; Βγάζει θερμότητα από τα φαγητά</li>
+          <li>Μόνωση τοίχων: εμποδίζει ροή θερμότητας</li>
+        </ul>
+      </div>
+      <div class="why-card heat">
+        <h4>🚗 Αυτοκίνητο</h4>
+        <ul>
+          <li>Βενζίνη καίγεται → θερμότητα → κίνηση (κινητήρας)</li>
+          <li>Γιατί το καπό είναι ζεστό μετά από ταξίδι</li>
+          <li>Ψυγείο αυτοκινήτου: αποβάλλει περίσσεια θερμότητα</li>
+        </ul>
+      </div>
+      <div class="why-card heat">
+        <h4>📱 Κινητό &amp; Gaming</h4>
+        <ul>
+          <li>Γιατί ζεσταίνεται όταν παίζεις Roblox ή φορτίζει</li>
+          <li>Όρια θερμοκρασίας: στους 45°C ρίχνει απόδοση για προστασία</li>
+          <li>Laptop: ανεμιστήρας = ενεργή απομάκρυνση θερμότητας</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🗺️ Ο χάρτης όλης της Φυσικής σου</h2>
+    <p>Δες το μεγάλο πλάνο. Αυτό που μαθαίνεις τώρα είναι κομμάτι ενός 3χρονου ταξιδιού.</p>
+    <div class="roadmap">
+      <div class="year">
+        <h4>📘 Α' Γυμνασίου — Ξεκίνησες</h4>
+        <div class="unit-row">
+          <span class="unit done">Μετρήσεις &amp; Όργανα</span>
+          <span class="unit current">Μάζα &amp; Βάρος</span>
+          <span class="unit current">Θερμοκρασία &amp; Θερμότητα</span>
+          <span class="unit future">Πυκνότητα</span>
+          <span class="unit future">Αλλαγές Κατάστασης</span>
+          <span class="unit future">Διάδοση Θερμότητας</span>
+        </div>
+      </div>
+      <div class="year now">
+        <h4>🎯 Εδώ είσαι τώρα — Απρίλιος 2026</h4>
+        <p style="font-size:0.94em;color:var(--ink-2);margin-top:6px">Κεφάλαια 2 &amp; 3 της φετινής χρονιάς. Αν τα δαμάσεις τώρα, τα υπόλοιπα της χρονιάς είναι επέκταση του ίδιου πλαισίου.</p>
+      </div>
+      <div class="year">
+        <h4>📗 Β' Γυμνασίου — Ο κόσμος κινείται</h4>
+        <div class="unit-row">
+          <span class="unit future">Κίνηση &amp; Ταχύτητα</span>
+          <span class="unit future">Δυνάμεις</span>
+          <span class="unit future">Νόμοι Νεύτωνα</span>
+          <span class="unit future">Πίεση</span>
+          <span class="unit future">Ενέργεια &amp; Έργο</span>
+        </div>
+      </div>
+      <div class="year">
+        <h4>📕 Γ' Γυμνασίου — Αόρατες δυνάμεις</h4>
+        <div class="unit-row">
+          <span class="unit future">Ηλεκτρισμός</span>
+          <span class="unit future">Μαγνητισμός</span>
+          <span class="unit future">Φως &amp; Ήχος</span>
+          <span class="unit future">Ατομική δομή</span>
+        </div>
+      </div>
+    </div>
+    <div class="tip galaxidi">
+      <strong>🧭 Η μεγάλη εικόνα:</strong> Μάζα → Δύναμη → Κίνηση → Ενέργεια → Ηλεκτρισμός. Κάθε κομμάτι χτίζει πάνω στο προηγούμενο. Η σημερινή Μάζα &amp; Θερμότητα είναι το ΘΕΜΕΛΙΟ όλης της Φυσικής του Γυμνασίου.
+    </div>
+  </div>
+</div>
+
+<!-- ============ BADGES / REWARDS ============ -->
+<div class="panel" id="badges">
+  <div class="badge-summary">
+    <div>🏆 Συλλογή Τροπαίων</div>
+    <div class="big"><span id="badge-count">0</span> / 8</div>
+    <div id="badge-status">Ξεκίνα το ταξίδι! Κάθε τρόπαιο ξεκλειδώνει κάτι αληθινό.</div>
+  </div>
+
+  <div class="card">
+    <h2>🏅 Τα τρόπαιά σου</h2>
+    <p>Κάθε τρόπαιο κερδίζεται με πραγματική δουλειά — δεν χαρίζεται. Η πρόοδος αποθηκεύεται αυτόματα.</p>
+    <div class="badge-grid" id="badge-grid"></div>
+  </div>
+
+  <div class="card">
+    <h2>🎁 Επιβραβεύσεις</h2>
+    <p>Όσο περισσότερα τρόπαια, τόσο μεγαλύτερη η αμοιβή. Συζητάς με τον μπαμπά για να οριστούν τα τελικά — εδώ είναι η πρόταση:</p>
+    <div class="reward-tier" id="rw-1" data-unlock="1">
+      <div class="tier-ico">🍦</div>
+      <div class="tier-body"><h4>1 Τρόπαιο — Μπρούντζινο</h4><p>Παγωτό στο Γαλαξίδι ή +30 λεπτά screen time</p></div>
+    </div>
+    <div class="reward-tier" id="rw-3" data-unlock="3">
+      <div class="tier-ico">🎬</div>
+      <div class="tier-body"><h4>3 Τρόπαια — Ασημένιο</h4><p>Movie night — εσύ επιλέγεις ταινία + pop corn</p></div>
+    </div>
+    <div class="reward-tier" id="rw-5" data-unlock="5">
+      <div class="tier-ico">📚</div>
+      <div class="tier-body"><h4>5 Τρόπαια — Χρυσό</h4><p>Νέο βιβλίο ή comic της επιλογής σου (μέχρι 20€)</p></div>
+    </div>
+    <div class="reward-tier" id="rw-7" data-unlock="7">
+      <div class="tier-ico">🐉</div>
+      <div class="tier-body"><h4>7 Τρόπαια — Πλατινένιο</h4><p>Ειδική συνεδρία D&amp;D με τον Μάνο &amp; τον Τάιλερ — σενάριο που γράφει ο μπαμπάς μόνο για σένα</p></div>
+    </div>
+    <div class="reward-tier" id="rw-8" data-unlock="8">
+      <div class="tier-ico">👑</div>
+      <div class="tier-body"><h4>8 Τρόπαια — Διαμαντένιο</h4><p>Έξτρα μέρα Γαλαξίδι με ελεύθερη επιλογή δραστηριότητας (βάρκα, ψάρεμα, ό,τι θες)</p></div>
+    </div>
+    <div class="tip">
+      <strong>⚡ Ειλικρινής κανόνας:</strong> Μόνο γνήσια κερδισμένα τρόπαια μετράνε. Αν κάνεις trick το σύστημα, χάνεις το παιχνίδι — όχι τη μέρα.
+    </div>
+  </div>
 </div>
 
 </div>
@@ -1134,6 +1407,102 @@ window.AJAX_PHYS_CONFIG = {
   document.querySelector('[data-tab=boss]').addEventListener('click',function(){
     if(!bossInit){ bossInit=true; renderBoss(); setTimeout(function(){playSound('boss-intro');},400); }
   });
+
+  // ---------- BADGES ----------
+  // Persist a small counter for visited learn cards + narration plays.
+  var seenCards = storeGet('ajax-phys-seen-cards', {});
+  document.querySelectorAll('.lcard').forEach(function(c,i){
+    // mark card i as seen when next-card moves past it
+  });
+  document.getElementById('next-card').addEventListener('click',function(){
+    seenCards[String(cur)] = true;
+    storeSet('ajax-phys-seen-cards', seenCards);
+  });
+  var narratePlays = storeGet('ajax-phys-narrate-plays', 0);
+  document.querySelectorAll('.narrate').forEach(function(b){
+    b.addEventListener('click',function(){
+      narratePlays = (narratePlays|0) + 1;
+      storeSet('ajax-phys-narrate-plays', narratePlays);
+    });
+  });
+
+  var BADGES = [
+    {id:'reader', ico:'📖', name:'Μελετητής', desc:'Διάβασες όλες τις κάρτες', check:function(){
+      var n=document.querySelectorAll('.lcard').length;
+      var c=Object.keys(seenCards||{}).length;
+      return c >= Math.max(1,n-1);
+    }},
+    {id:'first-quiz', ico:'🎯', name:'Πρώτο Κουίζ', desc:'Ξεκίνησες το quiz', check:function(){
+      var s=storeGet('ajax-phys-quiz-v1',null);
+      return !!(s && (s.attempts>0 || (s.mastered && s.mastered.length>0)));
+    }},
+    {id:'bronze', ico:'🥉', name:'Μπρούντζος', desc:'3+ mastered κουίζ', check:function(){
+      var s=storeGet('ajax-phys-quiz-v1',null);
+      return !!(s && s.mastered && s.mastered.length >= 3);
+    }},
+    {id:'silver', ico:'🥈', name:'Ασήμι', desc:'8+ mastered κουίζ', check:function(){
+      var s=storeGet('ajax-phys-quiz-v1',null);
+      return !!(s && s.mastered && s.mastered.length >= 8);
+    }},
+    {id:'gold', ico:'🥇', name:'Χρυσός', desc:'Όλα mastered (15/15)', check:function(){
+      var s=storeGet('ajax-phys-quiz-v1',null);
+      return !!(s && s.mastered && s.mastered.length >= 15);
+    }},
+    {id:'listener', ico:'🎧', name:'Ακουστικός', desc:'Άκουσες 3+ αφηγήσεις', check:function(){
+      return (storeGet('ajax-phys-narrate-plays',0)|0) >= 3;
+    }},
+    {id:'hero', ico:'👑', name:'Νικητής Δράκου', desc:'Νίκησες το boss fight', check:function(){
+      var s=storeGet('ajax-phys-boss-v1',null);
+      return !!(s && s.qi >= 5 && s.score >= 3);
+    }},
+    {id:'sage', ico:'🏛️', name:'Σοφός', desc:'Όλα τα παραπάνω', check:function(){
+      return false; // filled in at render time after others
+    }}
+  ];
+
+  function renderBadges(){
+    var grid=document.getElementById('badge-grid');
+    if(!grid) return;
+    clear(grid);
+    var earnedCount = 0;
+    var earnedIds = {};
+    BADGES.forEach(function(b){
+      if(b.id === 'sage') return; // handled last
+      if(b.check()){ earnedCount++; earnedIds[b.id]=true; }
+    });
+    var sageEarned = earnedCount >= 7;
+    if(sageEarned) earnedCount = 8;
+
+    BADGES.forEach(function(b){
+      var earned = (b.id==='sage') ? sageEarned : !!earnedIds[b.id];
+      var d=el('div','badge '+(earned?'earned':'locked'));
+      var ico=el('span','ico', b.ico);
+      var nm=el('div','name', b.name);
+      var ds=el('div','desc', b.desc);
+      d.appendChild(ico); d.appendChild(nm); d.appendChild(ds);
+      grid.appendChild(d);
+    });
+
+    document.getElementById('badge-count').textContent = earnedCount;
+    var status = document.getElementById('badge-status');
+    if(earnedCount === 0) status.textContent = 'Ξεκίνα το ταξίδι! Κάθε τρόπαιο ξεκλειδώνει κάτι αληθινό.';
+    else if(earnedCount < 3) status.textContent = 'Ωραία αρχή, Αία. Συνέχισε.';
+    else if(earnedCount < 5) status.textContent = 'Καλή πορεία — τα μεγάλα έπαθλα σε περιμένουν.';
+    else if(earnedCount < 8) status.textContent = 'Σχεδόν όλα! Ένα βήμα μακριά από το Διαμαντένιο.';
+    else status.textContent = '🎉 Τέλεια συλλογή! Είσαι Σοφός της Φυσικής.';
+
+    document.querySelectorAll('.reward-tier').forEach(function(r){
+      var need = parseInt(r.dataset.unlock,10);
+      r.classList.toggle('unlocked', earnedCount >= need);
+      r.classList.toggle('locked', earnedCount < need);
+    });
+  }
+
+  document.querySelector('[data-tab=badges]').addEventListener('click',function(){
+    renderBadges();
+  });
+  // initial pass so counts exist if user lands on page
+  renderBadges();
 })();
 </script>
 </body>
